@@ -83,6 +83,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addItem = (item: Omit<CartItem, "quantity">) => {
     dispatch({ type: "ADD_ITEM", payload: item })
+    // NO abrir carrito automáticamente aquí
   }
 
   const removeItem = (id: string) => {

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { useCart } from "@/contexts/cart-context"
@@ -20,11 +20,25 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
   const totalPrice = getTotalPrice()
 
+  // Cerrar automáticamente si el carrito se vacía
+  useEffect(() => {
+    if (totalItems === 0 && isOpen) {
+      onClose()
+    }
+  }, [totalItems, isOpen, onClose])
+
   // Reset checkout state when drawer closes
   const handleClose = () => {
     setShowCheckout(false)
     onClose()
   }
+
+  // Reset checkout state when items change
+  useEffect(() => {
+    if (totalItems === 0) {
+      setShowCheckout(false)
+    }
+  }, [totalItems])
 
   return (
     <Sheet open={isOpen} onOpenChange={handleClose}>

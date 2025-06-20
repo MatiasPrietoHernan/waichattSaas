@@ -34,14 +34,13 @@ export function LoginForm() {
       });
       console.log(res)
       if (res?.error) return toast({ title: "Error de acceso", description: "Email o contraseña incorrectos", variant: "destructive", });
-      toast({ title: "Acceso concedido", description: "Bienvenido al panel de administracion"});
       router.push("/admin");
+      toast({ title: "Acceso concedido", description: "Bienvenido al panel de administracion" });
     } catch (error) {
       return toast({ title: "Error de acceso", description: "Error en el servidor", variant: "destructive", });
-    }finally{
+    } finally {
       setLoading(false);
     }
-
 
   }
 
@@ -106,6 +105,13 @@ export function LoginForm() {
               {loading ? "Verificando..." : "Iniciar Sesión"}
             </Button>
           </form>
+
+          {/* Credenciales de demo */}
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+            <p className="text-sm font-medium text-gray-700 mb-2">Credenciales de demo:</p>
+            <p className="text-xs text-gray-600">Email: admin@technocommerce.com</p>
+            <p className="text-xs text-gray-600">Contraseña: admin123</p>
+          </div>
 
           <div className="mt-6 text-center">
             <Link href="/">

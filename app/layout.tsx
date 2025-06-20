@@ -8,9 +8,9 @@ import { Toaster } from "@/components/ui/toaster"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "EcommerceHub - Plataforma SaaS de E-commerce",
+  title: "EcommerceHub",
   description: "Plataforma completa para crear tu tienda online con gestión de productos y carrito de compras",
-    generator: 'v0.dev'
+    generator: 'next.js',
 }
 
 export default function RootLayout({

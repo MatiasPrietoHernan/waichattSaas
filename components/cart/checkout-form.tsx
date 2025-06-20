@@ -28,6 +28,7 @@ interface CheckoutFormProps {
 export function CheckoutForm({ items, totalPrice, onBack, onClose }: CheckoutFormProps) {
   const [loading, setLoading] = useState(false)
   const [needsShipping, setNeedsShipping] = useState(false)
+  const [token, setToken] = useState<string | null>('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWJqZWN0Ijoie1xuKzU0OTM4MTYwNzkyMTIsXG4xMzVcbn0iLCJpYXQiOjE3NTA0NDYxODR9.JpJT9AaR6zBdSovHvi0sZ350oYWfOGLywRAhDLDjvyI')
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -60,6 +61,31 @@ export function CheckoutForm({ items, totalPrice, onBack, onClose }: CheckoutFor
       setLoading(false)
       return
     }
+
+    const sendToWebhook = async ()=>{
+      const response = await fetch("https://pgwebhookpg.pgdevtuc.tech/webhook/waichattsaas", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(
+          {
+          items: items.map((item) => ({
+            id: item.id,
+            title: item.name,
+            unit_price: item.price,
+            quantity: item.quantity
+          })),
+          totalPrice,
+          needsShipping,
+          formData,
+          token
+        })
+      })
+    }
+
+    sendToWebhook()
 
     // Simulación de procesamiento del pedido
     setTimeout(() => {

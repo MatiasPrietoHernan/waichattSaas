@@ -25,28 +25,6 @@
     --ring: 142.1 76.2% 36.3%;
     --radius: 0.5rem;
   }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 142.1 70.6% 45.3%;
-    --primary-foreground: 144.9 80.4% 10%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 142.4 71.8% 29.2%;
-  }
 }
 
 @layer base {
@@ -59,19 +37,51 @@
   }
 }
 
-/* Estilos minimalistas adicionales */
-.line-clamp-1 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 1;
+/* Fondo estilo WhatsApp con imagen personalizada */
+.whatsapp-bg {
+  background-color: #efeae2;
+  background-image: url("/images/whatsapp-image.png");
+  background-size: 300px 300px;
+  background-repeat: repeat;
+  background-position: 0 0;
+  position: relative;
 }
 
-.line-clamp-2 {
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+/* Overlay para ajustar la opacidad de la imagen de fondo */
+.whatsapp-bg::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #efeae2;
+  opacity: 0.85;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Asegurar que el contenido esté por encima del overlay */
+.whatsapp-bg > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Estilos para el botón flotante centrado */
+.floating-cart-btn {
+  animation: bounce-in 0.3s ease-out;
+}
+
+@keyframes bounce-in {
+  0% {
+    transform: translateX(-50%) scale(0);
+  }
+  50% {
+    transform: translateX(-50%) scale(1.1);
+  }
+  100% {
+    transform: translateX(-50%) scale(1);
+  }
 }
 
 /* Transiciones suaves */
@@ -98,4 +108,55 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #059669;
+}
+
+/* Estilos para las cards de productos estilo WhatsApp */
+.product-message {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  margin: 8px 16px;
+  max-width: 280px;
+  position: relative;
+  z-index: 2;
+}
+
+@media (min-width: 768px) {
+  .product-message {
+    max-width: 320px;
+    margin: 12px;
+  }
+}
+
+/* Responsive background sizing */
+@media (max-width: 640px) {
+  .whatsapp-bg {
+    background-size: 200px 200px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .whatsapp-bg {
+    background-size: 400px 400px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .whatsapp-bg {
+    background-size: 500px 500px;
+  }
+}
+
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 1;
+}
+
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
