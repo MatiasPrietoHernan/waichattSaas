@@ -78,7 +78,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 </div>
               </div>
 
-              <div className="border-t pt-4 space-y-4">
+              <div className="border-t pt-4 space-y-4 mb-5">
                 <div className="flex justify-between items-center text-lg font-semibold">
                   <span>Total:</span>
                   <span>${totalPrice.toFixed(2)}</span>

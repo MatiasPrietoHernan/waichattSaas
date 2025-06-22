@@ -17,12 +17,15 @@ interface Product {
   stock: number
 }
 
+
 export function WhatsAppProductCatalog() {
   const [products, setProducts] = useState<Product[]>([])
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCategory, setSelectedCategory] = useState<string>("all")
   const [searchTerm, setSearchTerm] = useState("")
+
+
 
   useEffect(() => {
     fetchProducts()
@@ -94,7 +97,6 @@ export function WhatsAppProductCatalog() {
           onSearchChange={setSearchTerm}
         />
       </div>
-
       {/* Productos */}
       {filteredProducts.length === 0 ? (
         <div className="text-center py-20">
