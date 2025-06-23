@@ -1,5 +1,5 @@
-import { AdminDashboard } from "@/components/admin/admin-dashboard"
-import { AdminHeader } from "@/components/admin/admin-header"
+import { AdminDashboard } from "@/components/admin/AdminDashboard"
+import { AdminHeader } from "@/components/admin/AdminHeader"
 
 export default function AdminPage() {
   return (

@@ -1,5 +1,5 @@
-import { ProductManagement } from "@/components/admin/product-management"
-import { AdminHeader } from "@/components/admin/admin-header"
+import { ProductManagement } from "@/components/admin/ProductMagnament"
+import { AdminHeader } from "@/components/admin/AdminHeader"
 
 export default function AdminProductsPage() {
   return (
