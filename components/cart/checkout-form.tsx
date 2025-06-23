@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import React from "react"
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { ArrowLeft, Package, CreditCard } from "lucide-react"
 import { useCart } from "@/contexts/cart-context"
 import { useToast } from "@/hooks/use-toast"
+import { useSearchParams } from "next/navigation"
 
 interface CheckoutFormProps {
   items: Array<{
@@ -26,9 +27,10 @@ interface CheckoutFormProps {
 }
 
 export function CheckoutForm({ items, totalPrice, onBack, onClose }: CheckoutFormProps) {
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id") || "";
   const [loading, setLoading] = useState(false)
   const [needsShipping, setNeedsShipping] = useState(false)
-  const [token, setToken] = useState<string | null>('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWJqZWN0Ijoie1xuKzU0OTM4MTYwNzkyMTIsXG4xMzVcbn0iLCJpYXQiOjE3NTA0NDYxODR9.JpJT9AaR6zBdSovHvi0sZ350oYWfOGLywRAhDLDjvyI')
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -62,30 +64,40 @@ export function CheckoutForm({ items, totalPrice, onBack, onClose }: CheckoutFor
       return
     }
 
-    const sendToWebhook = async ()=>{
-      const response = await fetch("https://pgwebhookpg.pgdevtuc.tech/webhook/waichattsaas", {
+    const sendToWebhook = async () => {
+      const res = await fetch(`/api/token?id=${id}`)
+      const data = await res.json()
+
+      const response = await fetch(process.env.NEXT_PUBLIC_URL_WEBHOOK || "", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          "Authorization": `Bearer ${data.token}`
         },
         body: JSON.stringify(
           {
-          items: items.map((item) => ({
-            id: item.id,
-            title: item.name,
-            unit_price: item.price,
-            quantity: item.quantity
-          })),
-          totalPrice,
-          needsShipping,
-          formData,
-          token
-        })
+            items: items.map((item) => ({
+              id: item.id,
+              title: item.name,
+              unit_price: item.price,
+              quantity: item.quantity
+            })),
+            totalPrice,
+            needsShipping,
+            formData
+          })
       })
     }
 
     sendToWebhook()
+
+    const link = document.createElement("a");
+    link.href = "https://wa.me/+5493816592823"
+    link.target = "_blank";
+    link.rel = "noopener noreferrer";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 
     // Simulación de procesamiento del pedido
     setTimeout(() => {
@@ -93,12 +105,13 @@ export function CheckoutForm({ items, totalPrice, onBack, onClose }: CheckoutFor
         title: "¡Pedido realizado!",
         description: `Gracias ${formData.name}, tu pedido ha sido procesado exitosamente`,
       })
-
       // Limpiar carrito y cerrar
       clearCart()
       onClose()
       setLoading(false)
     }, 2000)
+
+
   }
 
   const shippingCost = needsShipping ? 10 : 0

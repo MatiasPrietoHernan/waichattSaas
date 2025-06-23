@@ -8,7 +8,7 @@ import { validateToken } from "@/lib/validateToken"
 export default async function HomePage({ searchParams }: { searchParams: { id?: string } }) {
   const id = searchParams?.id
 
-  if (!id) {
+  if (!id || id.length!=24) {
     redirect("/sessionExpired")
   }
 
