@@ -13,6 +13,8 @@ export const metadata: Metadata = {
     generator: 'next.js',
 }
 
+
+
 export default function RootLayout({
   children,
 }: {

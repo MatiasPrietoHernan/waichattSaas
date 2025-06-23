@@ -5,16 +5,15 @@ import { redirect } from "next/navigation"
 import { validateToken } from "@/lib/validateToken"
 
 
-export default async function HomePage({ searchParams }: { searchParams: { token?: string } }) {
-  const token = searchParams.token
-  const secret = process.env.NEXTAUTH_SECRET || "default"
+export default async function HomePage({ searchParams }: { searchParams: { id?: string } }) {
+  const id = searchParams?.id
 
-  if (!token) {
+  if (!id) {
     redirect("/sessionExpired")
   }
 
   try {
-    const isValid = validateToken(token)
+    const isValid = validateToken(id)
     if (!isValid) {
       redirect("/sessionExpired")
     }
