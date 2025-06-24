@@ -18,7 +18,8 @@ type CartAction =
   | { type: "ADD_ITEM"; payload: Omit<CartItem, "quantity"> }
   | { type: "REMOVE_ITEM"; payload: string }
   | { type: "UPDATE_QUANTITY"; payload: { id: string; quantity: number } }
-  | { type: "CLEAR_CART" }
+  | { type: "CLEAR_CART"}
+  | { type: "SET_CART"; payload: CartItem[] }
 
 const CartContext = createContext<{
   items: CartItem[]
@@ -26,6 +27,7 @@ const CartContext = createContext<{
   removeItem: (id: string) => void
   updateQuantity: (id: string, quantity: number) => void
   clearCart: () => void
+  setCart: (items: CartItem[]) => void
   getTotalPrice: () => number
 } | null>(null)
 
@@ -70,6 +72,12 @@ function cartReducer(state: CartState, action: CartAction): CartState {
         ),
       }
 
+    case "SET_CART":
+      return {
+        ...state,
+        items: action.payload,
+      }
+
     case "CLEAR_CART":
       return { items: [] }
 
@@ -83,7 +91,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const addItem = (item: Omit<CartItem, "quantity">) => {
     dispatch({ type: "ADD_ITEM", payload: item })
-    // NO abrir carrito automáticamente aquí
   }
 
   const removeItem = (id: string) => {
@@ -98,6 +105,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
     dispatch({ type: "CLEAR_CART" })
   }
 
+  const setCart = (items: CartItem[]) => {
+    dispatch({ type: "SET_CART", payload: items })
+  }
+
   const getTotalPrice = () => {
     return state.items.reduce((total, item) => total + item.price * item.quantity, 0)
   }
@@ -110,6 +121,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         removeItem,
         updateQuantity,
         clearCart,
+        setCart,
         getTotalPrice,
       }}
     >
@@ -124,4 +136,53 @@ export function useCart() {
     throw new Error("useCart must be used within a CartProvider")
   }
   return context
+}
+
+// Función helper para transformar datos de API al formato del carrito
+export function transformApiCartToCartItems(apiCart: {
+  items: Array<{
+    id: string
+    title: string
+    unit_price: number
+    quantity: number
+    image?: string
+  }>
+}): CartItem[] {
+  return apiCart.items.map(item => ({
+    id: item.id,
+    name: item.title,
+    price: item.unit_price,
+    image: item.image || '', // valor por defecto si no hay imagen
+    quantity: item.quantity
+  }))
+}
+
+// Función para obtener carrito desde API (solo cliente)
+export async function getCartFromApi(cartId: string): Promise<CartItem[]> {
+  try {
+    // Asegúrate de que esta función solo se ejecute en el cliente
+    if (typeof window === 'undefined') {
+      throw new Error('getCartFromApi solo puede ejecutarse en el cliente')
+    }
+
+    const response = await fetch(`/api/cart?idCart=${cartId}`)
+    
+    const apiCart = await response.json()
+    
+    // Manejar tanto status 200 como 404
+    if (response.status === 200 || response.status === 404) {
+      // Verificar si hay productos
+      if (apiCart.products && Array.isArray(apiCart.products) && apiCart.products.length > 0) {
+        return transformApiCartToCartItems({ items: apiCart.products })
+      } else {
+        return []
+      }
+    }
+    
+    throw new Error(`Error al obtener el carrito: ${response.status}`)
+    
+  } catch (error) {
+    console.error('Error getting cart:', error)
+    return []
+  }
 }

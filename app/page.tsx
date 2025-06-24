@@ -1,21 +1,22 @@
 import { WhatsAppHeader } from "@/components/layout/whatsapp-header"
 import { WhatsAppProductCatalog } from "@/components/products/whatsapp-product-catalog"
 import { FloatingCartButton } from "@/components/products/floating-cart-button"
+import { CartLoader } from "@/components/cart/cart-loader"
 import { redirect } from "next/navigation"
 import { validateToken } from "@/lib/validateToken"
 
+export default async function HomePage({ searchParams }: { searchParams: { id?: string; idCart?: string } }) {
+  const id = searchParams?.id;
 
-export default async function HomePage({ searchParams }: { searchParams: { id?: string } }) {
-  const id = searchParams?.id
-
-  if (!id || id.length!=24) {
-    redirect("/sessionExpired")
+  if (!id || id.length !== 24) {
+    redirect("/sessionExpired");
   }
 
   try {
-    const isValid = validateToken(id)
+    const isValid = await validateToken(id);
+
     if (!isValid) {
-      redirect("/sessionExpired")
+      redirect("/sessionExpired");
     }
 
     return (
@@ -25,9 +26,10 @@ export default async function HomePage({ searchParams }: { searchParams: { id?: 
           <WhatsAppProductCatalog />
         </main>
         <FloatingCartButton />
+        <CartLoader />
       </div>
-    )
+    );
   } catch (err) {
-    redirect("/sessionExpired")
+    redirect("/sessionExpired");
   }
 }

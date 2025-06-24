@@ -33,7 +33,6 @@ export function CheckoutForm({ items, totalPrice, onBack, onClose }: CheckoutFor
   const [needsShipping, setNeedsShipping] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
-    phone: "",
     address: "",
   })
   const { clearCart } = useCart()
@@ -44,7 +43,7 @@ export function CheckoutForm({ items, totalPrice, onBack, onClose }: CheckoutFor
     setLoading(true)
 
     // Validación básica
-    if (!formData.name || !formData.phone) {
+    if (!formData.name) {
       toast({
         title: "Campos requeridos",
         description: "Por favor completa nombre y teléfono",
@@ -146,23 +145,11 @@ export function CheckoutForm({ items, totalPrice, onBack, onClose }: CheckoutFor
               required
             />
           </div>
-
-          <div>
-            <Label htmlFor="phone">Teléfono *</Label>
-            <Input
-              id="phone"
-              type="tel"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              placeholder="+1 (555) 123-4567"
-              required
-            />
-          </div>
         </div>
 
         {/* Opciones de envío */}
         <div className="space-y-4">
-          <h4 className="font-medium text-gray-900">Entrega</h4>
+          <h4 className="font-medium text-gray-900">Envio</h4>
 
           <div className="flex items-center space-x-2">
             <Checkbox
@@ -228,7 +215,7 @@ export function CheckoutForm({ items, totalPrice, onBack, onClose }: CheckoutFor
       </form>
 
       {/* Footer con botón */}
-      <div className="border-t pt-4">
+      <div className="border-t pt-4 mb-5">
         <Button
           type="submit"
           onClick={handleSubmit}

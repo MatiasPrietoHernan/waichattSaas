@@ -15,7 +15,6 @@ export async function validateToken(id: string): Promise<boolean> {
     if (user && user.token) {
         try {
             const decode=verify(user.token, secretKey);
-            console.log("Token decoded:", decode);
             return true
         } catch (error: any) {
             console.error("Token verification error:", error.message);
