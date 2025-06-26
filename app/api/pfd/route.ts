@@ -1,15 +1,7 @@
 // app/api/generate-pdf/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-
-// Extender el tipo jsPDF para incluir autoTable
-declare module 'jspdf' {
-  interface jsPDF {
-    autoTable: (options: any) => jsPDF;
-    lastAutoTable: { finalY: number };
-  }
-}
+import autoTable from 'jspdf-autotable';
 
 // Interfaces TypeScript
 interface Producto {
@@ -146,8 +138,8 @@ export async function POST(request: NextRequest) {
       `$${(producto.price * producto.quantity).toLocaleString('es-AR')}`
     ]);
 
-    // Tabla de productos
-    doc.autoTable({
+    // Tabla de productos - Usando autoTable importado
+    autoTable(doc, {
       startY: 135,
       head: [['Cant.', 'Descripción', 'Precio Unit.', 'Total']],
       body: tableData,
@@ -181,10 +173,11 @@ export async function POST(request: NextRequest) {
     const iva = subtotalConDescuento * 0.21; // 21% IVA
     const total = subtotalConDescuento + iva;
 
-    // Tabla de totales
-    const finalY = doc.lastAutoTable.finalY + 10;
+    // Obtener la posición Y final de la tabla anterior
+    const finalY = (doc as any).lastAutoTable.finalY + 10;
     
-    doc.autoTable({
+    // Tabla de totales
+    autoTable(doc, {
       startY: finalY,
       body: [
         ['Subtotal:', `$${subtotal.toLocaleString('es-AR')}`],
@@ -208,7 +201,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Fila final del total con fondo verde
-    const totalFinalY = doc.lastAutoTable.finalY;
+    const totalFinalY = (doc as any).lastAutoTable.finalY;
     doc.setFillColor(26, 95, 63);
     doc.rect(115, totalFinalY - 7, 80, 10, 'F');
     
