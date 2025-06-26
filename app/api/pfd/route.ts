@@ -78,8 +78,6 @@ export async function POST(request: NextRequest) {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(28);
     doc.text('FACTURA', 105, 25, { align: 'center' });
-    doc.setFontSize(12);
-    doc.text('Documento Fiscal Oficial', 105, 35, { align: 'center' });
 
     // Resetear color de texto
     doc.setTextColor(0, 0, 0);
@@ -125,10 +123,6 @@ export async function POST(request: NextRequest) {
     doc.text(`Factura #${numeroFactura}`, 20, 115);
     doc.text(`Fecha: ${fecha}`, 20, 122);
     
-    const vencimiento = new Date();
-    vencimiento.setDate(vencimiento.getDate() + 30);
-    doc.text(`Vencimiento: ${vencimiento.toLocaleDateString('es-AR')}`, 120, 115);
-    doc.text('Condición: 30 días', 120, 122);
 
     // Preparar datos para la tabla
     const tableData = body.productos.map(producto => [
@@ -147,12 +141,12 @@ export async function POST(request: NextRequest) {
       headStyles: { 
         fillColor: [26, 95, 63],
         textColor: [255, 255, 255],
-        fontSize: 11,
+        fontSize: 10,
         fontStyle: 'bold'
       },
       bodyStyles: { 
-        fontSize: 10,
-        cellPadding: 8
+        fontSize: 9,
+        cellPadding: 4
       },
       columnStyles: {
         0: { halign: 'center', cellWidth: 25 },
@@ -161,7 +155,12 @@ export async function POST(request: NextRequest) {
         3: { halign: 'right', cellWidth: 35 }
       },
       alternateRowStyles: { fillColor: [248, 249, 250] },
-      margin: { left: 15, right: 15 }
+      margin: { left: 15, right: 15 },
+      styles: {
+        minCellHeight: 6,
+        lineColor: [200, 200, 200],
+        lineWidth: 0.5
+      }
     });
 
     // Calcular totales
@@ -176,14 +175,11 @@ export async function POST(request: NextRequest) {
     // Obtener la posición Y final de la tabla anterior
     const finalY = (doc as any).lastAutoTable.finalY + 10;
     
-    // Tabla de totales
+    // Tabla de totales (solo subtotal)
     autoTable(doc, {
       startY: finalY,
       body: [
-        ['Subtotal:', `$${subtotal.toLocaleString('es-AR')}`],
-        ['Descuento (5%):', `-$${descuento.toLocaleString('es-AR')}`],
-        ['IVA (21%):', `$${iva.toLocaleString('es-AR')}`],
-        ['TOTAL A PAGAR:', `$${total.toLocaleString('es-AR')}`]
+        ['Subtotal:', `${subtotal.toLocaleString('es-AR')}`]
       ],
       theme: 'plain',
       styles: { 
@@ -200,8 +196,7 @@ export async function POST(request: NextRequest) {
       margin: { left: 115 }
     });
 
-    // Fila final del total con fondo verde
-    const totalFinalY = (doc as any).lastAutoTable.finalY;
+    const totalFinalY = (doc as any).lastAutoTable.finalY + 10;
     doc.setFillColor(26, 95, 63);
     doc.rect(115, totalFinalY - 7, 80, 10, 'F');
     
@@ -209,26 +204,11 @@ export async function POST(request: NextRequest) {
     doc.setFontSize(12);
     doc.setFont('helvetica', 'bold');
     doc.text('TOTAL A PAGAR:', 125, totalFinalY - 1);
-    doc.text(`$${total.toLocaleString('es-AR')}`, 185, totalFinalY - 1, { align: 'right' });
+    doc.text(`${subtotal.toLocaleString('es-AR')}`, 185, totalFinalY - 1, { align: 'right' });
 
-    // Notas al pie
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(10);
-    doc.setFont('helvetica', 'normal');
     const notesY = totalFinalY + 15;
+  
     
-    doc.setFillColor(248, 249, 250);
-    doc.rect(15, notesY, 180, 25, 'F');
-    
-    doc.setTextColor(26, 95, 63);
-    doc.setFont('helvetica', 'bold');
-    doc.text('Observaciones:', 20, notesY + 8);
-    
-    doc.setTextColor(0, 0, 0);
-    doc.setFont('helvetica', 'normal');
-    doc.text('• El pago debe realizarse dentro de los 30 días de la fecha de emisión.', 20, notesY + 15);
-    doc.text('• Aceptamos transferencias bancarias y cheques certificados.', 20, notesY + 21);
-
     // Footer
     const footerY = notesY + 35;
     doc.setFillColor(26, 95, 63);
