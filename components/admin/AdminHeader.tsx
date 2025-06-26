@@ -24,13 +24,13 @@ export function AdminHeader() {
             <Link href="/admin">
               <Button variant="ghost" size="sm" className="hover:bg-emerald-50 hover:text-emerald-700">
                 <BarChart3 className="h-4 w-4 mr-2" />
-                Dashboard
+                Productos
               </Button>
             </Link>
-            <Link href="/admin/products">
+            <Link href="/admin/settings">
               <Button variant="ghost" size="sm" className="hover:bg-emerald-50 hover:text-emerald-700">
                 <Package className="h-4 w-4 mr-2" />
-                Productos
+                Configuración
               </Button>
             </Link>
             <Link href="/">

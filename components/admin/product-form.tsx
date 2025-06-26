@@ -41,32 +41,35 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
   const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+  e.preventDefault()
+  setLoading(true)
 
-    try {
-      const productData = {
-        ...formData,
-        salePrice: formData.salePrice ? Number.parseFloat(formData.salePrice.toString()) : null,
-      }
+  try {
+    const productData = {
+  ...formData,
+  salePrice: formData.salePrice ? Number.parseFloat(formData.salePrice.toString()) : null,
+  ...(product?.id ? { id: product.id } : {})
+}
 
-      const response = await fetch("/api/products", {
-        method: product ? "PUT" : "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(productData),
-      })
 
-      if (response.ok) {
-        onSave()
-      }
-    } catch (error) {
-      console.error("Error saving product:", error)
-    } finally {
-      setLoading(false)
+    const response = await fetch("/api/products", {
+      method: product ? "PUT" : "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(productData),
+    })
+
+    if (response.ok) {
+      onSave()
     }
+  } catch (error) {
+    console.error("Error saving product:", error)
+  } finally {
+    setLoading(false)
   }
+}
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">

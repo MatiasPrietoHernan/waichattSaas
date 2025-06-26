@@ -52,8 +52,17 @@ export function ProductManagement() {
 
   const handleDelete = async (productId: string) => {
     if (confirm("¿Estás seguro de que quieres eliminar este producto?")) {
-      // En producción, aquí harías la llamada DELETE a la API
-      setProducts(products.filter((p) => p.id !== productId))
+      try {
+        const response = await fetch(`/api/products?id=${productId}`, { method: "DELETE" })
+
+        if (response.ok) {
+          setProducts(products.filter((p) => p.id !== productId))
+        } else {
+          console.error("Error deleting product:", response.statusText)
+        }
+      } catch (error) {
+        console.error("Error deleting product:", error)
+      }
     }
   }
 
