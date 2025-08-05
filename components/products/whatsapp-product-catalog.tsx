@@ -5,15 +5,17 @@ import { WhatsAppProductCard } from "./whatsapp-product-card"
 import { ProductFilters } from "./product-filters"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
+import { getAllProducts } from "@/lib/methods/get_products"
+import { get } from "http"
 
 interface Product {
   id: string
-  name: string
+  title: string
   description: string
-  price: number
-  salePrice?: number | null
+  sales_price: number | null
   category: string
-  image: string
+  subcategory: string
+  image_urls: string
   stock: number
 }
 
@@ -37,8 +39,7 @@ export function WhatsAppProductCatalog() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch("/api/products")
-      const data = await response.json()
+      const data = await getAllProducts()
       setProducts(data)
     } catch (error) {
       console.error("Error fetching products:", error)
@@ -57,8 +58,7 @@ export function WhatsAppProductCatalog() {
     if (searchTerm) {
       filtered = filtered.filter(
         (product) =>
-          product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          product.description.toLowerCase().includes(searchTerm.toLowerCase()),
+          product.title.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
 

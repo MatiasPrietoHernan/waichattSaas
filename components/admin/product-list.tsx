@@ -5,23 +5,13 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Edit, Trash2 } from "lucide-react"
-
-interface Product {
-  id: string
-  name: string
-  description: string
-  price: number
-  salePrice?: number | null
-  category: string
-  image: string
-  stock: number
-}
-
+import { Product } from "@/lib/types"
 interface ProductListProps {
   products: Product[]
   onEdit: (product: Product) => void
-  onDelete: (productId: string) => void
+  onDelete: (productId: number) => void
 }
+
 
 export function ProductList({ products, onEdit, onDelete }: ProductListProps) {
   if (products.length === 0) {
@@ -34,23 +24,23 @@ export function ProductList({ products, onEdit, onDelete }: ProductListProps) {
       </Card>
     )
   }
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {products.map((product) => (
-        <Card key={product.id} className="overflow-hidden">
+      {products.map((product, index) => (
+        <Card key={index} className="overflow-hidden">
           <div className="relative">
             <Image
-              src={product.image || "/placeholder.svg"}
-              alt={product.name}
+              src={product.image_urls || "/placeholder.svg"}
+              alt={product.title}
               width={300}
               height={200}
               className="w-full h-48 object-cover"
             />
+            
             <div className="absolute top-2 right-2 flex space-x-1">
-              {product.salePrice && product.salePrice < product.price && (
+              {product.sales_price && product.sales_price < product.sales_price && (
                 <Badge className="bg-red-500">
-                  -{Math.round(((product.price - product.salePrice) / product.price) * 100)}%
+                  -{Math.round(((product.sales_price - product.sales_price) / product.sales_price) * 100)}%
                 </Badge>
               )}
               {product.stock === 0 && <Badge variant="destructive">Agotado</Badge>}
@@ -65,23 +55,23 @@ export function ProductList({ products, onEdit, onDelete }: ProductListProps) {
           <CardContent className="p-4">
             <div className="mb-2">
               <Badge variant="secondary" className="text-xs">
-                {product.category}
+                {product.subcategory}
               </Badge>
             </div>
 
-            <h3 className="font-semibold text-gray-900 mb-2 line-clamp-1">{product.name}</h3>
+            <h3 className="font-semibold text-gray-900 mb-2 line-clamp-1">{product.title}</h3>
 
             <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description}</p>
 
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center space-x-2">
-                {product.salePrice && product.salePrice < product.price ? (
+                {product.sales_price && product.sales_price < product.sales_price ? (
                   <>
-                    <span className="text-lg font-bold text-green-600">${product.salePrice.toFixed(2)}</span>
-                    <span className="text-sm text-gray-500 line-through">${product.price.toFixed(2)}</span>
+                    <span className="text-lg font-bold text-green-600">${product.sales_price}</span>
+                    <span className="text-sm text-gray-500 line-through">${product.sales_price}</span>
                   </>
                 ) : (
-                  <span className="text-lg font-bold text-gray-900">${product.price.toFixed(2)}</span>
+                  <span className="text-lg font-bold text-gray-900">${product.sales_price}</span>
                 )}
               </div>
               <span className="text-sm text-gray-600">Stock: {product.stock}</span>
@@ -95,7 +85,7 @@ export function ProductList({ products, onEdit, onDelete }: ProductListProps) {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => onDelete(product.id)}
+                onClick={() => onDelete(product.product_id)}
                 className="text-red-600 hover:text-red-700 hover:bg-red-50"
               >
                 <Trash2 className="h-3 w-3" />

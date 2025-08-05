@@ -1,75 +1,91 @@
 "use client"
 
 import type React from "react"
-
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { X } from "lucide-react"
+import { getSubcategory } from "@/lib/methods/get_products"
+import {ProductPayload} from "@/lib/types" 
+import {Product} from "@/lib/types" 
 
-interface Product {
-  id: string
-  name: string
-  description: string
-  price: number
-  salePrice?: number | null
-  category: string
-  image: string
-  stock: number
+// Suponiendo que Subcategory tiene esta estructura
+interface Subcategory {
+  id_subcategory: number;
+  subcategory: string;
 }
 
 interface ProductFormProps {
-  product?: Product | null
-  onSave: () => void
-  onCancel: () => void
+  product?: Product | null;
+  // Modifica onSave para que reciba el objeto del producto
+  onSave: (productData: Partial<ProductPayload> & { id?: number }) => void;
+  onCancel: () => void;
 }
 
 export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
   const [formData, setFormData] = useState({
-    name: product?.name || "",
+    title: product?.title || "",
     description: product?.description || "",
-    price: product?.price || 0,
-    salePrice: product?.salePrice || "",
-    category: product?.category || "",
-    image: product?.image || "",
+    price: product?.sales_price || 0,
+    salePrice: product?.sales_price || "",
+    id_subcategory: product?.id_subcategory || 0,
+    image: product?.image_urls || "",
     stock: product?.stock || 0,
-  })
+  });
 
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
+  const [loadingSubcategories, setLoadingSubcategories] = useState(true);
+
+  // useEffect para cargar las subcategorías
+  useEffect(() => {
+    const fetchSubcategories = async () => {
+      try {
+        const data = await getSubcategory();
+        setSubcategories(data);
+      } catch (error) {
+        console.error("Error fetching subcategories:", error);
+      } finally {
+        setLoadingSubcategories(false);
+      }
+    };
+
+    fetchSubcategories();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault()
-  setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
-  try {
-    const productData = {
-  ...formData,
-  salePrice: formData.salePrice ? Number.parseFloat(formData.salePrice.toString()) : null,
-  ...(product?.id ? { id: product.id } : {})
-}
+    try {
+      // Prepara el objeto de datos que será enviado
+      const productDataToSave = {
+        p_title: formData.title,
+        p_description: formData.description,
+        p_sales_price: formData.salePrice ? Number.parseFloat(formData.salePrice.toString()) : null,
+        p_id_subcategory: Number(formData.id_subcategory),
+        p_image_urls: formData.image,
+        p_stock: formData.stock,
+      };
 
+      // Si estamos editando, añadimos el id al objeto de datos
+      if (product?.product_id) {
+        onSave({ id: product.product_id, ...productDataToSave });
+        console.log("Updating product with data:", { id: product.product_id, ...productDataToSave });
+      } else {
+        console.log("Creating new product with data:", productDataToSave);
+        onSave(productDataToSave);
+      }
 
-    const response = await fetch("/api/products", {
-      method: product ? "PUT" : "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(productData),
-    })
-
-    if (response.ok) {
-      onSave()
+    } catch (error) {
+      console.error("Error saving product:", error);
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error("Error saving product:", error)
-  } finally {
-    setLoading(false)
-  }
-}
-
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
@@ -87,19 +103,33 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
                 <Label htmlFor="name">Nombre del Producto</Label>
                 <Input
                   id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  value={formData.title}
+                  onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   required
                 />
               </div>
               <div>
-                <Label htmlFor="category">Categoría</Label>
-                <Input
-                  id="category"
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  required
-                />
+                <Label htmlFor="id_subcategory">Sub-Categoría</Label>
+                {loadingSubcategories ? (
+                  <p>Cargando subcategorías...</p>
+                ) : (
+                  <select
+                    id="id_subcategory"
+                    value={formData.id_subcategory}
+                    onChange={(e) => setFormData({ ...formData, id_subcategory: Number(e.target.value) })}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    required
+                  >
+                    <option value="" disabled>
+                      Seleccionar una sub-categoría
+                    </option>
+                    {subcategories.map((subcat) => (
+                      <option key={subcat.id_subcategory} value={subcat.id_subcategory}>
+                        {subcat.subcategory}
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
             </div>
 
@@ -172,5 +202,5 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

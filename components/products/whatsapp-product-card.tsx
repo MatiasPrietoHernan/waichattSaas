@@ -8,12 +8,12 @@ import { useCart } from "@/contexts/cart-context"
 
 interface Product {
   id: string
-  name: string
+  title: string
   description: string
-  price: number
-  salePrice?: number | null
+  sales_price: number | null
   category: string
-  image: string
+  subcategory:string
+  image_urls: string
   stock: number
 }
 
@@ -27,21 +27,22 @@ export function WhatsAppProductCard({ product }: WhatsAppProductCardProps) {
   const handleAddToCart = () => {
     addItem({
       id: product.id,
-      name: product.name,
-      price: product.salePrice || product.price,
-      image: product.image,
+      name: product.title,
+      price: product.sales_price || product.sales_price || 0,
+      image: product.image_urls,
     })
   }
 
-  const hasDiscount = product.salePrice && product.salePrice < product.price
-  const discountPercentage = hasDiscount ? Math.round(((product.price - product.salePrice!) / product.price) * 100) : 0
+  const hasDiscount = product.sales_price && product.sales_price < product.sales_price
+  const salePrice = product.sales_price ?? 0
+  const discountPercentage = hasDiscount ? Math.round(((salePrice - salePrice) / salePrice) * 100) : 0
 
   return (
     <div className="product-message">
       <div className="relative overflow-hidden rounded-t-lg">
         <Image
-          src={product.image || "/placeholder.svg"}
-          alt={product.name}
+          src={product.image_urls || "/placeholder.svg"}
+          alt={product.title}
           width={400}
           height={250}
           className="w-full h-48 md:h-52 lg:h-56 object-cover"
@@ -64,33 +65,26 @@ export function WhatsAppProductCard({ product }: WhatsAppProductCardProps) {
       <div className="p-4 md:p-5">
         <div className="mb-3">
           <Badge variant="secondary" className="text-xs">
-            {product.category}
+            {product.subcategory}
           </Badge>
         </div>
 
-        <h3 className="font-semibold text-gray-900 mb-2 text-sm md:text-base line-clamp-1">{product.name}</h3>
+        <h3 className="font-semibold text-gray-900 mb-2 text-sm md:text-base line-clamp-1">{product.title}</h3>
         <p className="text-gray-600 text-xs md:text-sm mb-3 line-clamp-2">{product.description}</p>
 
-        <div className="flex items-center mb-3">
-          <div className="flex items-center space-x-1">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} className="h-3 w-3 md:h-3.5 md:w-3.5 fill-yellow-400 text-yellow-400" />
-            ))}
-          </div>
-          <span className="text-xs md:text-sm text-gray-500 ml-2">(4.8)</span>
-        </div>
+        
 
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
             {hasDiscount ? (
               <>
                 <span className="text-base md:text-lg font-bold text-emerald-600">
-                  ${product.salePrice!.toFixed(2)}
+                  ${product.sales_price!}
                 </span>
-                <span className="text-xs md:text-sm text-gray-400 line-through">${product.price.toFixed(2)}</span>
+                <span className="text-xs md:text-sm text-gray-400 line-through">${product.sales_price}</span>
               </>
             ) : (
-              <span className="text-base md:text-lg font-bold text-gray-900">${product.price.toFixed(2)}</span>
+              <span className="text-base md:text-lg font-bold text-gray-900">${product.sales_price}</span>
             )}
           </div>
         </div>

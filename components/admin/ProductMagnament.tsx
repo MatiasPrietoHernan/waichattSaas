@@ -7,17 +7,9 @@ import { Plus, Upload, Download } from "lucide-react"
 import { ProductForm } from "./product-form"
 import { ProductList } from "./product-list"
 import { ImportDialog } from "./import-dialog"
-
-interface Product {
-  id: string
-  name: string
-  description: string
-  price: number
-  salePrice?: number | null
-  category: string
-  image: string
-  stock: number
-}
+// Importa las funciones de Supabase para crear y actualizar
+import { deleteProduct, getAllProducts, addProduct, updateProduct } from "@/lib/methods/get_products"
+import { Product } from "@/lib/types"
 
 export function ProductManagement() {
   const [products, setProducts] = useState<Product[]>([])
@@ -31,35 +23,44 @@ export function ProductManagement() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch("/api/products")
-      const data = await response.json()
-      setProducts(data)
+      const response = await getAllProducts()
+      setProducts(response)
     } catch (error) {
       console.error("Error fetching products:", error)
     }
   }
 
-  const handleProductSaved = () => {
-    fetchProducts()
-    setShowForm(false)
-    setEditingProduct(null)
-  }
+  // MODIFICACIÓN: Esta función ahora maneja tanto la creación como la actualización
+  const handleProductSaved = async (productData: any) => {
+    try {
+      if (editingProduct) {
+        // Si hay un producto en edición, lo actualizamos
+        await updateProduct({ ...productData, id: editingProduct.product_id });
+      } else {
+        // Si no, creamos un nuevo producto
+        // Asume que la función `createProduct` existe y tiene un parámetro `productData`
+        await addProduct(productData);
+      }
+      fetchProducts();
+      setShowForm(false);
+      setEditingProduct(null);
+    } catch (error) {
+      console.error("Error saving product:", error);
+    }
+  };
 
   const handleEdit = (product: Product) => {
     setEditingProduct(product)
     setShowForm(true)
   }
 
-  const handleDelete = async (productId: string) => {
+  const handleDelete = async (productId: number) => {
     if (confirm("¿Estás seguro de que quieres eliminar este producto?")) {
       try {
-        const response = await fetch(`/api/products?id=${productId}`, { method: "DELETE" })
-
-        if (response.ok) {
-          setProducts(products.filter((p) => p.id !== productId))
-        } else {
-          console.error("Error deleting product:", response.statusText)
-        }
+        console.log(productId)
+        const response = await deleteProduct(productId)
+        console.log("Producto eliminado:", response)
+        setProducts(products.filter((p) => p.product_id !== productId))
       } catch (error) {
         console.error("Error deleting product:", error)
       }
@@ -136,7 +137,7 @@ export function ProductManagement() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {products.filter((p) => p.salePrice && p.salePrice < p.price).length}
+              {products.filter((p) => p.sales_price && p.sales_price < p.sales_price).length}
             </div>
           </CardContent>
         </Card>

@@ -1,22 +1,10 @@
-import mongoose from "mongoose";
+import {createBrowserClient} from '@supabase/ssr'
 
-let client: mongoose.Mongoose | null = null;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-const connectDB = async () => {
-  if (client?.connection.readyState) {
-    return client;
-  } else {
-    try {
-      client = await mongoose.connect(process.env.DATABASE_URL as string);
-      console.log("MongoDB connected successfully");
-      return client;
-    } catch (error) {
-      console.error("MongoDB connection failed:", error);
-      return null;
-    }
-  }
-
-};
-
-export default connectDB;
-
+export const createClient = () =>
+  createBrowserClient(
+    supabaseUrl!,
+    supabaseKey!,
+  );

@@ -53,50 +53,57 @@ export function CheckoutForm({ items, totalPrice, onBack, onClose }: CheckoutFor
       return
     }
 
-    if (needsShipping && !formData.address) {
-      toast({
-        title: "Dirección requerida",
-        description: "Por favor ingresa tu dirección de envío",
-        variant: "destructive",
-      })
-      setLoading(false)
-      return
-    }
+    // const sendToWebhook = async () => {
+    //   const res = await fetch(`/api/token?id=${id}`)
+    //   const data = await res.json()
 
-    const sendToWebhook = async () => {
-      const res = await fetch(`/api/token?id=${id}`)
-      const data = await res.json()
+    //   const response = await fetch(process.env.NEXT_PUBLIC_URL_WEBHOOK || "", {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //       "Authorization": `Bearer ${data.token}`
+    //     },
+    //     body: JSON.stringify(
+    //       {
+    //         items: items.map((item) => ({
+    //           id: item.id,
+    //           title: item.name,
+    //           unit_price: item.price,
+    //           quantity: item.quantity
+    //         })),
+    //         totalPrice,
+    //         needsShipping,
+    //         formData
+    //       })
+    //   })
+    // }
 
-      const response = await fetch(process.env.NEXT_PUBLIC_URL_WEBHOOK || "", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${data.token}`
-        },
-        body: JSON.stringify(
-          {
-            items: items.map((item) => ({
-              id: item.id,
-              title: item.name,
-              unit_price: item.price,
-              quantity: item.quantity
-            })),
-            totalPrice,
-            needsShipping,
-            formData
-          })
-      })
-    }
+    // sendToWebhook()
 
-    sendToWebhook()
+ const resumen = items
+  .map((item) => `*- ${item.name} x${item.quantity} - $${(item.price * item.quantity).toFixed(2)}*`)
+  .join("\n");
 
-    const link = document.createElement("a");
-    link.href = "https://wa.me/+5493816592823"
-    link.target = "_blank";
-    link.rel = "noopener noreferrer";
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+const total = (totalPrice + (needsShipping ? 10 : 0)).toFixed(2);
+
+// Mensaje predefinido
+const message = `
+Hola, mi nombre es *${formData.name}*.
+Resumen de mi pedido:
+${resumen}
+Total: $${total}
+`;
+
+// Crear link de WhatsApp con mensaje codificado
+const encodedMessage = encodeURIComponent(message.trim());
+const phone = "+5493816814079"; // Reemplazar con tu número de WhatsApp
+const link = document.createElement("a");
+link.href = `https://wa.me/${phone}?text=${encodedMessage}`;
+link.target = "_blank";
+link.rel = "noopener noreferrer";
+document.body.appendChild(link);
+link.click();
+document.body.removeChild(link);
 
     // Simulación de procesamiento del pedido
     setTimeout(() => {
@@ -147,35 +154,6 @@ export function CheckoutForm({ items, totalPrice, onBack, onClose }: CheckoutFor
           </div>
         </div>
 
-        {/* Opciones de envío */}
-        <div className="space-y-4">
-          <h4 className="font-medium text-gray-900">Envio</h4>
-
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="shipping"
-              checked={needsShipping}
-              onCheckedChange={(checked) => setNeedsShipping(checked as boolean)}
-            />
-            <Label htmlFor="shipping" className="text-sm">
-              Necesito envío a domicilio (+$10.00)
-            </Label>
-          </div>
-
-          {needsShipping && (
-            <div>
-              <Label htmlFor="address">Dirección de Envío *</Label>
-              <Textarea
-                id="address"
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                placeholder="Calle, número, colonia, ciudad, código postal"
-                rows={3}
-                required
-              />
-            </div>
-          )}
-        </div>
 
         {/* Resumen del pedido */}
         <div className="bg-gray-50 rounded-lg p-4 space-y-3">

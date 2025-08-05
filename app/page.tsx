@@ -5,19 +5,8 @@ import { CartLoader } from "@/components/cart/cart-loader"
 import { redirect } from "next/navigation"
 import { validateToken } from "@/lib/validateToken"
 
-export default async function HomePage({ searchParams }: { searchParams: { id?: string; idCart?: string } }) {
-  const id = searchParams?.id;
+export default async function HomePage() {
 
-  if (!id || id.length !== 24) {
-    redirect("/sessionExpired");
-  }
-
-  try {
-    const isValid = await validateToken(id);
-
-    if (!isValid) {
-      redirect("/sessionExpired");
-    }
 
     return (
       <div className="min-h-screen">
@@ -29,7 +18,5 @@ export default async function HomePage({ searchParams }: { searchParams: { id?: 
         <CartLoader />
       </div>
     );
-  } catch (err) {
-    redirect("/sessionExpired");
-  }
+
 }
