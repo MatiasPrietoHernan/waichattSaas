@@ -6,10 +6,12 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Edit, Trash2 } from "lucide-react"
 import { Product } from "@/lib/types"
+// En tu ProductList component
 interface ProductListProps {
-  products: Product[]
-  onEdit: (product: Product) => void
-  onDelete: (productId: number) => void
+  products: Product[];
+  onEdit: (product: Product) => void;
+  onDelete: (id: number) => void;
+  loading?: boolean; // Nuevo prop opcional
 }
 
 

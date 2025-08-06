@@ -1,4 +1,4 @@
-import { ProductManagement } from "@/components/admin/ProductMagnament"
+import  ProductManagement  from "@/components/admin/ProductMagnament"
 import { AdminHeader } from "@/components/admin/AdminHeader"
 
 export default function AdminProductsPage() {

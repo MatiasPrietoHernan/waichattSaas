@@ -1,87 +1,161 @@
 "use client"
 
 import type React from "react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { X } from "lucide-react"
+import { X, Upload, Trash2, ImageIcon } from "lucide-react"
+import { Product } from "@/lib/types"
 import { getSubcategory } from "@/lib/methods/get_products"
-import {ProductPayload} from "@/lib/types" 
-import {Product} from "@/lib/types" 
 
-// Suponiendo que Subcategory tiene esta estructura
+// Tipos simulados para el ejemplo
 interface Subcategory {
   id_subcategory: number;
   subcategory: string;
 }
 
+
+interface ProductPayload {
+  p_title: string;
+  p_description: string;
+  p_sales_price: number | null;
+  p_id_subcategory: number;
+  p_stock: number;
+}
+
 interface ProductFormProps {
   product?: Product | null;
-  // Modifica onSave para que reciba el objeto del producto
-  onSave: (productData: Partial<ProductPayload> & { id?: number }) => void;
+  onSave: (productData: Partial<ProductPayload> & { id?: number }, imageFiles?: File[]) => void;
   onCancel: () => void;
 }
 
-export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
+export default function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
   const [formData, setFormData] = useState({
     title: product?.title || "",
     description: product?.description || "",
     price: product?.sales_price || 0,
     salePrice: product?.sales_price || "",
     id_subcategory: product?.id_subcategory || 0,
-    image: product?.image_urls || "",
     stock: product?.stock || 0,
   });
 
   const [loading, setLoading] = useState(false);
   const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
-  const [loadingSubcategories, setLoadingSubcategories] = useState(true);
+  const [loadingSubcategories, setLoadingSubcategories] = useState(false);
 
-  // useEffect para cargar las subcategorías
+  // Estados para manejo de imágenes
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const [existingImages, setExistingImages] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Cargar imágenes existentes si estamos editando
   useEffect(() => {
-    const fetchSubcategories = async () => {
-      try {
-        const data = await getSubcategory();
-        setSubcategories(data);
-      } catch (error) {
-        console.error("Error fetching subcategories:", error);
-      } finally {
-        setLoadingSubcategories(false);
-      }
-    };
+    if (product?.image_urls) {
+      const images = Array.isArray(product.image_urls) 
+        ? product.image_urls 
+        : [product.image_urls];
+      setExistingImages(images);
+    }
+  }, [product]);
 
+  const fetchSubcategories = async () => {
+    try {
+      setLoadingSubcategories(true);
+      const data = await getSubcategory();
+      setSubcategories(data);
+    }
+    catch (error) {
+      console.error("Error fetching subcategories:", error);
+      alert("Error al cargar las sub-categorías. Inténtalo de nuevo.");
+    } finally {
+      setLoadingSubcategories(false);
+    }
+  }
+  useEffect(() => {
     fetchSubcategories();
   }, []);
 
+  // Limpiar URLs de preview cuando el componente se desmonte
+  useEffect(() => {
+    return () => {
+      previewUrls.forEach(url => URL.revokeObjectURL(url));
+    };
+  }, [previewUrls]);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    
+    // Validar tipos de archivo
+    const validFiles = files.filter(file => {
+      const isValid = file.type.startsWith('image/');
+      if (!isValid) {
+        alert(`${file.name} no es un archivo de imagen válido`);
+      }
+      return isValid;
+    });
+
+    if (validFiles.length === 0) return;
+
+    // Limpiar previews anteriores
+    previewUrls.forEach(url => URL.revokeObjectURL(url));
+
+    // Crear nuevos previews
+    const newPreviewUrls = validFiles.map(file => URL.createObjectURL(file));
+    
+    setSelectedFiles(validFiles);
+    setPreviewUrls(newPreviewUrls);
+  };
+
+  const removeFile = (index: number) => {
+    const newFiles = selectedFiles.filter((_, i) => i !== index);
+    const newPreviews = previewUrls.filter((_, i) => i !== index);
+    
+    // Limpiar URL del preview eliminado
+    URL.revokeObjectURL(previewUrls[index]);
+    
+    setSelectedFiles(newFiles);
+    setPreviewUrls(newPreviews);
+  };
+
+  const removeExistingImage = (index: number) => {
+    setExistingImages(prev => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validar que hay al menos una imagen (nueva o existente)
+    if (selectedFiles.length === 0 && existingImages.length === 0) {
+      alert("Debes agregar al menos una imagen del producto");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // Prepara el objeto de datos que será enviado
       const productDataToSave = {
         p_title: formData.title,
         p_description: formData.description,
         p_sales_price: formData.salePrice ? Number.parseFloat(formData.salePrice.toString()) : null,
         p_id_subcategory: Number(formData.id_subcategory),
-        p_image_urls: formData.image,
         p_stock: formData.stock,
       };
 
-      // Si estamos editando, añadimos el id al objeto de datos
       if (product?.product_id) {
-        onSave({ id: product.product_id, ...productDataToSave });
-        console.log("Updating product with data:", { id: product.product_id, ...productDataToSave });
+        // Editando: incluir el ID
+        onSave({ id: product.product_id, ...productDataToSave }, selectedFiles);
       } else {
-        console.log("Creating new product with data:", productDataToSave);
-        onSave(productDataToSave);
+        // Creando nuevo producto
+        onSave(productDataToSave, selectedFiles);
       }
 
     } catch (error) {
       console.error("Error saving product:", error);
+      alert("Error al guardar el producto. Inténtalo de nuevo.");
     } finally {
       setLoading(false);
     }
@@ -89,7 +163,7 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>{product ? "Editar Producto" : "Agregar Nuevo Producto"}</CardTitle>
           <Button variant="ghost" size="sm" onClick={onCancel}>
@@ -97,7 +171,8 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
           </Button>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Información básica del producto */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="name">Nombre del Producto</Label>
@@ -140,7 +215,6 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 rows={3}
-                required
               />
             </div>
 
@@ -178,16 +252,96 @@ export function ProductForm({ product, onSave, onCancel }: ProductFormProps) {
               </div>
             </div>
 
-            <div>
-              <Label htmlFor="image">URL de la Imagen</Label>
-              <Input
-                id="image"
-                type="url"
-                value={formData.image}
-                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                placeholder="https://ejemplo.com/imagen.jpg"
-                required
-              />
+            {/* Sección de imágenes */}
+            <div className="space-y-4">
+              <div>
+                <Label>Imágenes del Producto</Label>
+                <div className="mt-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full border-dashed"
+                  >
+                    <Upload className="h-4 w-4 mr-2" />
+                    {selectedFiles.length > 0 ? 'Cambiar imágenes' : 'Subir imágenes'}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Imágenes existentes (solo en modo edición) */}
+              {existingImages.length > 0 && (
+                <div>
+                  <Label>Imágenes actuales</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
+                    {existingImages.map((url, index) => (
+                      <div key={`existing-${index}`} className="relative group">
+                        <img
+                          src={url}
+                          alt={`Imagen existente ${index + 1}`}
+                          className="w-full h-24 object-cover rounded-lg border"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => removeExistingImage(index)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Preview de nuevas imágenes */}
+              {previewUrls.length > 0 && (
+                <div>
+                  <Label>Nuevas imágenes</Label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-2">
+                    {previewUrls.map((url, index) => (
+                      <div key={`preview-${index}`} className="relative group">
+                        <img
+                          src={url}
+                          alt={`Preview ${index + 1}`}
+                          className="w-full h-24 object-cover rounded-lg border"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={() => removeFile(index)}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                        <div className="absolute bottom-1 left-1 bg-black bg-opacity-70 text-white text-xs px-2 py-1 rounded">
+                          {selectedFiles[index]?.name}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Mensaje si no hay imágenes */}
+              {selectedFiles.length === 0 && existingImages.length === 0 && (
+                <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
+                  <ImageIcon className="h-12 w-12 mx-auto text-gray-400 mb-2" />
+                  <p className="text-gray-500">No hay imágenes seleccionadas</p>
+                  <p className="text-sm text-gray-400">Selecciona al menos una imagen para el producto</p>
+                </div>
+              )}
             </div>
 
             <div className="flex justify-end space-x-3 pt-4">
