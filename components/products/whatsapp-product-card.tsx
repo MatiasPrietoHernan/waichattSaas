@@ -5,20 +5,10 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ShoppingCart, Star } from "lucide-react"
 import { useCart } from "@/contexts/cart-context"
-
-interface Product {
-  id: string
-  name: string
-  description: string
-  price: number
-  salePrice?: number | null
-  category: string
-  image: string
-  stock: number
-}
+import { IProduct } from "@/types/product"
 
 interface WhatsAppProductCardProps {
-  product: Product
+  product: IProduct
 }
 
 export function WhatsAppProductCard({ product }: WhatsAppProductCardProps) {
@@ -26,22 +16,22 @@ export function WhatsAppProductCard({ product }: WhatsAppProductCardProps) {
 
   const handleAddToCart = () => {
     addItem({
-      id: product.id,
-      name: product.name,
-      price: product.salePrice || product.price,
+      id: product._id,
+      name: product.title,
+      price: product.sales_price,
       image: product.image,
     })
   }
 
-  const hasDiscount = product.salePrice && product.salePrice < product.price
-  const discountPercentage = hasDiscount ? Math.round(((product.price - product.salePrice!) / product.price) * 100) : 0
+  const hasDiscount = product.sales_price && product.sales_price < product.sales_price
+  const discountPercentage = hasDiscount ? Math.round(((product.sales_price - product.sales_price!) / product.sales_price) * 100) : 0
 
   return (
     <div className="product-message">
       <div className="relative overflow-hidden rounded-t-lg">
         <Image
           src={product.image || "/placeholder.svg"}
-          alt={product.name}
+          alt={product.title}
           width={400}
           height={250}
           className="w-full h-48 md:h-52 lg:h-56 object-cover"
@@ -64,11 +54,11 @@ export function WhatsAppProductCard({ product }: WhatsAppProductCardProps) {
       <div className="p-4 md:p-5">
         <div className="mb-3">
           <Badge variant="secondary" className="text-xs">
-            {product.category}
+            {product.subcategory}
           </Badge>
         </div>
 
-        <h3 className="font-semibold text-gray-900 mb-2 text-sm md:text-base line-clamp-1">{product.name}</h3>
+        <h3 className="font-semibold text-gray-900 mb-2 text-sm md:text-base line-clamp-1">{product.title}</h3>
         <p className="text-gray-600 text-xs md:text-sm mb-3 line-clamp-2">{product.description}</p>
 
         <div className="flex items-center mb-3">
@@ -85,12 +75,12 @@ export function WhatsAppProductCard({ product }: WhatsAppProductCardProps) {
             {hasDiscount ? (
               <>
                 <span className="text-base md:text-lg font-bold text-emerald-600">
-                  ${product.salePrice!.toFixed(2)}
+                  ${product.sales_price!.toFixed(2)}
                 </span>
-                <span className="text-xs md:text-sm text-gray-400 line-through">${product.price.toFixed(2)}</span>
+                <span className="text-xs md:text-sm text-gray-400 line-through">${product.sales_price}</span>
               </>
             ) : (
-              <span className="text-base md:text-lg font-bold text-gray-900">${product.price.toFixed(2)}</span>
+              <span className="text-base md:text-lg font-bold text-gray-900">${product.sales_price}</span>
             )}
           </div>
         </div>
