@@ -1,25 +1,64 @@
-import { NextResponse } from "next/server"
+import { NextResponse, NextRequest } from "next/server"
 import { IProduct } from "@/types/product"
 import connectDB from "@/lib/database"
 import { ObjectId } from "mongodb"
+import { getServerSession } from "next-auth"
+import { authOptions } from "../auth/[...nextauth]/route"
 
-
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url);
+    const page  = Math.max(1, Number(searchParams.get("page") ?? 1));
+    const limit = Math.min(100, Math.max(1, Number(searchParams.get("limit") ?? 12)));
+    const q = (searchParams.get("q") ?? "").trim();
+    const category = (searchParams.get("category") ?? "").trim();
+
     const db = await connectDB();
-    if (!db) {
-      return NextResponse.json({ error: "Error de conexión a la base de datos" }, { status: 500 })
-    }
-    const collection = db.connection.db?.collection<IProduct>(process.env.DATABSE_COLECCTION_PROD || "");
-    const products = (await collection?.find({}).toArray())?.map(p => ({ id: p._id, ...p }))
-    return NextResponse.json(products || [], { status: 200 })
-  } catch (error) {
-    return NextResponse.json({ error: "Error al obtener productos" }, { status: 500 })
+    if (!db) return NextResponse.json({ error: "Error de conexión a la base de datos" }, { status: 500 });
+    const col = db.connection.db!.collection(process.env.DATABSE_COLECCTION_PROD || "");
+
+    const base: any = { is_deleted: { $ne: true } };
+    const filter: any = q
+      ? { ...base, $or: [
+          { title: { $regex: q, $options: "i" } },
+          { category: { $regex: q, $options: "i" } },
+          { subcategory: { $regex: q, $options: "i" } },
+        ] }
+      : { ...base };
+
+    if (category) filter.category = category;
+
+    const total = await col.countDocuments(filter);
+
+    // 👇 orden determinista
+    const sort: Record<string, 1 | -1> = { createdAt: -1, _id: -1 };
+    const items = await col.find(filter)
+      .sort(sort)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .toArray();
+
+    const [inStock, outOfStock, discounted] = await Promise.all([
+      col.countDocuments({ ...base, stock: { $gt: 0 } }),
+      col.countDocuments({ ...base, stock: 0 }),
+      col.countDocuments({ ...base, sales_price: { $ne: null }, $expr: { $lt: ["$sales_price", "$price"] } }),
+    ]);
+
+    return NextResponse.json({
+      items, total, page, limit, totalPages: Math.max(1, Math.ceil(total / limit)),
+      summary: { inStock, outOfStock, discounted },
+    });
+  } catch {
+    return NextResponse.json({ error: "Error al obtener productos" }, { status: 500 });
   }
 }
 
+
 export async function POST(request: Request) {
   try {
+     const session = await getServerSession(authOptions);
+    if (!session || (session.user as any).role !== "admin")
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const product = await request.json()
     const newProduct = {
       ...product,
@@ -46,6 +85,9 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
+     const session = await getServerSession(authOptions);
+    if (!session || (session.user as any).role !== "admin")
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const product = await request.json();
     console.log(product)
     const { id, ...updateData } = product;
@@ -79,6 +121,9 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
 try {
+   const session = await getServerSession(authOptions);
+  if (!session || (session.user as any).role !== "admin")
+  return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { searchParams } = new URL(request.url);
   const id = searchParams.get("id");
   console.log("ID recibido:", id);

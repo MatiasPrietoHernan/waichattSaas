@@ -1,10 +1,13 @@
-import { Schema } from "mongoose";
+import { Schema, model, models } from "mongoose";
 
-const user = new Schema({
-    token:{type: String, required: true},
-    phone:{type: String, required: true},
-    conversationId:{type: String, required: true},
-    createdAt:{type: Date, default: Date.now},
-})
+const UserSchema = new Schema({
+  email: { type: String, unique: true, required: true, lowercase: true, trim: true, index: true },
+  passwordHash: { type: String, required: true, select: false }, // NUNCA guardes plano
+  name: String,
+  role: { type: String, enum: ["admin","user"], default: "admin" },
 
-export default user;
+  failedLogins: { type: Number, default: 0 },
+  lockedUntil: { type: Date, default: null },
+}, { timestamps: true });
+
+export default models.User || model("User", UserSchema);
