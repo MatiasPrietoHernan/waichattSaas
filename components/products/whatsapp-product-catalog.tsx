@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react";
 import { ApiListResponse } from "@/types/IWhatsappProductCatalog";
 import { IProduct } from "@/types/product";
 
+
 type ApiCategories = { categories: { name: string; count: number }[] };
 
 // ------- debounce simple (espera antes de disparar fetch) -------
@@ -22,6 +23,9 @@ function useDebounce<T>(value: T, delay = 450) {
 
 // map doc del server → IProduct (tu schema)
 function mapServerProduct(doc: any): IProduct {
+  // normalizá el bloque de financiación que venga del server
+  const fin = doc?.financing ?? doc?.product_financing ?? undefined;
+
   return {
     _id: String(doc._id ?? doc.id ?? ""),
     title: doc.title ?? doc.name ?? "",
@@ -43,13 +47,31 @@ function mapServerProduct(doc: any): IProduct {
         : "") ??
       "",
     stock: Number(doc.stock ?? 0),
+
+    // ⬇️⬇️ NUEVO: traé financing del server y normalizalo ⬇️⬇️
+    financing: fin
+      ? {
+          mode: (fin.mode as "inherit" | "override" | "disabled") ?? "inherit",
+          groupKey: fin.groupKey ?? fin.group_key ?? null,
+          downPct:
+            fin.downPct ?? fin.down_pct ?? null, // acepta camel o snake
+          // puede venir como planIds, como plans:[{_id,code}] o como array de ids
+          planIds: Array.isArray(fin.planIds)
+            ? fin.planIds.map((x: any) => String(x))
+            : Array.isArray(fin.plans)
+            ? fin.plans.map((p: any) => String(p?._id ?? p))
+            : undefined,
+        }
+      : undefined,
   };
 }
+
 
 export function WhatsAppProductCatalog() {
   const [products, setProducts] = useState<IProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  console.log("🎯 DEBUG WhatsAppProductCatalog - products:", products);
 
   // categorías globales
   const [categories, setCategories] = useState<string[]>([]);
@@ -210,7 +232,7 @@ export function WhatsAppProductCatalog() {
         </div>
       ) : (
         <>
-          <div className="flex flex-col items-center space-y-4 pb-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-0">
             {products.map((p) => (
               <WhatsAppProductCard key={p._id} product={p} />
             ))}

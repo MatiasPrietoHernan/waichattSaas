@@ -53,14 +53,14 @@ export function ProductManagement() {
         </div>
 
         <div className="flex items-center space-x-3">
-          <Button variant="outline" onClick={downloadTemplate}>
+          {/* <Button variant="outline" onClick={downloadTemplate}>
             <Download className="h-4 w-4 mr-2" />
             Descargar Plantilla
           </Button>
           <Button variant="outline" onClick={() => setShowImport(true)}>
             <Upload className="h-4 w-4 mr-2" />
             Importar
-          </Button>
+          </Button> */}
           <Button onClick={() => { setEditingProduct(null); setShowForm(true); }}>
             <Plus className="h-4 w-4 mr-2" />
             Agregar Producto

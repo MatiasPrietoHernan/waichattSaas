@@ -4,20 +4,14 @@ import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Minus, Plus, Trash2 } from "lucide-react"
 import { useCart } from "@/contexts/cart-context"
-
+import type { CartItem as CartItemType } from "@/contexts/cart-context"
 interface CartItemProps {
-  item: {
-    id: string
-    name: string
-    price: number
-    image: string
-    quantity: number
-  }
+  item: CartItemType
 }
 
 export function CartItem({ item }: CartItemProps) {
   const { updateQuantity, removeItem } = useCart()
-
+  console.log("🎯 DEBUG CartItem - item:", item)
   return (
     <div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
       <Image

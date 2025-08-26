@@ -3,9 +3,11 @@
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { ShoppingCart, Star } from "lucide-react"
+import { ShoppingCart, Star, X } from "lucide-react"
 import { useCart } from "@/contexts/cart-context"
 import { IProduct } from "@/types/product"
+import { useState } from "react"
+
 
 interface WhatsAppProductCardProps {
   product: IProduct
@@ -13,6 +15,9 @@ interface WhatsAppProductCardProps {
 
 export function WhatsAppProductCard({ product }: WhatsAppProductCardProps) {
   const { addItem } = useCart()
+  const [showImageModal, setShowImageModal] = useState(false)
+
+  const displayPrice = product.sales_price ?? product.price ?? 0
 
   const handleAddToCart = () => {
     addItem({
@@ -20,6 +25,7 @@ export function WhatsAppProductCard({ product }: WhatsAppProductCardProps) {
       name: product.title,
       price: product.sales_price,
       image: product.image,
+      financing: product.financing
     })
   }
 
@@ -27,8 +33,13 @@ export function WhatsAppProductCard({ product }: WhatsAppProductCardProps) {
   const discountPercentage = hasDiscount ? Math.round(((product.sales_price - product.sales_price!) / product.sales_price) * 100) : 0
 
   return (
-    <div className="product-message">
-      <div className="relative overflow-hidden rounded-t-lg">
+    <>
+    <div className="product-message w-full flex flex-col">
+      <div className="relative overflow-hidden rounded-t-lg group cursor-pointer"  
+        onClick={(e) => {
+        e.stopPropagation();      // <- clave
+        setShowImageModal(true);
+  }}>
         <Image
           src={product.image || "/placeholder.svg"}
           alt={product.title}
@@ -51,7 +62,7 @@ export function WhatsAppProductCard({ product }: WhatsAppProductCardProps) {
         )}
       </div>
 
-      <div className="p-4 md:p-5">
+      <div className="p-3 md:p-4 flex-1 flex flex-col">
         <div className="mb-3">
           <Badge variant="secondary" className="text-xs">
             {product.subcategory}
@@ -84,17 +95,63 @@ export function WhatsAppProductCard({ product }: WhatsAppProductCardProps) {
             )}
           </div>
         </div>
-
+          
         <Button
           onClick={handleAddToCart}
           disabled={product.stock === 0}
           size="sm"
-          className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-xs md:text-sm py-2.5 md:py-3"
+          className="w-full bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-xs py-2 mt-auto"
         >
           <ShoppingCart className="h-3 w-3 md:h-4 md:w-4 mr-2" />
           {product.stock === 0 ? "Agotado" : "Agregar al Carrito"}
         </Button>
       </div>
     </div>
+
+      {showImageModal && (
+  <div
+    className="fixed inset-0 z-[9999] bg-black/75 flex items-center justify-center p-3 md:p-6"
+    onClick={() => setShowImageModal(false)}
+  >
+    {/* PANEL */}
+    <div
+      className="relative w-full max-w-[clamp(320px,60vw,820px)]"   // <-- desktop más chico
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        onClick={() => setShowImageModal(false)}
+        className="absolute -top-10 right-0 text-white hover:text-gray-300 md:-top-12"
+        aria-label="Cerrar"
+      >
+        <X className="h-6 w-6" />
+      </button>
+
+      <div className="bg-white rounded-lg overflow-hidden">
+        {/* IMAGEN */}
+        <div className="relative w-full">
+          <div className="relative w-full aspect-[4/3] md:aspect-[16/10] lg:aspect-[3/2] 
+                          max-h-[70vh] md:max-h-[65vh] lg:max-h-[55vh]">
+            <Image
+              src={product.image || "/placeholder.svg"}
+              alt={product.title}
+              fill
+              className="object-contain"
+              sizes="(max-width: 640px) 90vw, (max-width: 1024px) 70vw, 60vw"
+            />
+          </div>
+        </div>
+
+        <div className="p-4">
+          <h3 className="font-semibold text-base md:text-lg mb-2">{product.title}</h3>
+          <p className="text-gray-600 text-sm md:text-base max-h-[20vh] overflow-y-auto">
+            {product.description}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
+    </>
   )
 }

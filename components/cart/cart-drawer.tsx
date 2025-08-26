@@ -19,7 +19,7 @@ export function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
   const totalPrice = getTotalPrice()
-
+  console.log("🎯 DEBUG CartDrawer - items:", items)
   // Cerrar automáticamente si el carrito se vacía
   useEffect(() => {
     if (totalItems === 0 && isOpen) {

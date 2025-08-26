@@ -22,7 +22,7 @@ export function Header() {
           <div className="flex items-center justify-between py-1 text-xs border-b border-gray-100">
             <div className="flex items-center space-x-2">
               <span className="text-gray-500">Powered by</span>
-              <span className="font-semibold text-green-600">Waichatt</span>
+              <span className="font-semibold text-green-600">Celestore</span>
             </div>
             <div className="flex items-center space-x-2">
               <Button variant="ghost" size="sm" asChild className="text-gray-500 hover:text-green-600 p-1 h-auto">
