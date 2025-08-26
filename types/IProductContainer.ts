@@ -1,0 +1,1 @@
+export type Summary = { inStock: number; outOfStock: number; discounted: number };

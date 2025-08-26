@@ -8,6 +8,12 @@ interface CartItem {
   price: number
   image: string
   quantity: number
+   financing?: {
+    mode: "inherit" | "override" | "disabled"
+    groupKey?: string | null
+    downPct?: number | null   // 0.15 = 15% (null => usar default)
+    planIds?: string[]; // ← En lugar de codes?: number[]
+  }
 }
 
 interface CartState {
@@ -139,6 +145,7 @@ export function useCart() {
 }
 
 // Función helper para transformar datos de API al formato del carrito
+// ⬇️ ampliá el tipo de entrada
 export function transformApiCartToCartItems(apiCart: {
   items: Array<{
     id: string
@@ -146,16 +153,24 @@ export function transformApiCartToCartItems(apiCart: {
     unit_price: number
     quantity: number
     image?: string
+    financing?: {
+      mode: "inherit" | "override" | "disabled"
+      groupKey?: string | null
+      downPct?: number | null
+      planIds?: string[]
+    }
   }>
 }): CartItem[] {
   return apiCart.items.map(item => ({
     id: item.id,
     name: item.title,
     price: item.unit_price,
-    image: item.image || '', // valor por defecto si no hay imagen
-    quantity: item.quantity
+    image: item.image || "",
+    quantity: item.quantity,
+    financing: item.financing ?? undefined,   // 👈 ¡NO lo pierdas!
   }))
 }
+
 
 // Función para obtener carrito desde API (solo cliente)
 export async function getCartFromApi(cartId: string): Promise<CartItem[]> {
@@ -186,3 +201,5 @@ export async function getCartFromApi(cartId: string): Promise<CartItem[]> {
     return []
   }
 }
+
+export type{ CartItem }

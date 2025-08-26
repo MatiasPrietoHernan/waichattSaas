@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import "./globals.css"
 import { CartProvider } from "@/contexts/cart-context"
 import { Toaster } from "@/components/ui/toaster"
-
+import AuthProvider from "@/components/auth/AuthProvider"
 
 export const metadata: Metadata = {
   title: "EcommerceHub",
@@ -21,10 +21,12 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body>
+        <AuthProvider>
         <CartProvider>
           {children}
           <Toaster />
         </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   )

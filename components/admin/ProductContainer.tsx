@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ProductList } from "./product-list";
 import type { IProduct } from "@/types/product";
+import { Summary } from "@/types/IProductContainer";
 
-type Summary = { inStock: number; outOfStock: number; discounted: number };
 
 export function ProductsContainer({
   onEdit,
@@ -42,13 +42,12 @@ export function ProductsContainer({
     }
   }
 
-  // buscar cada vez que cambie page, q o refreshToken
   useEffect(() => { setPage(1); }, [q]);
   useEffect(() => { fetchPage(page, q); }, [page, q, refreshToken]);
 
   return (
     <div className="space-y-6">
-      {/* búsqueda + contador */}
+
       <div className="flex items-center gap-2">
         <Input
           placeholder="Buscar por título/categoría…"
